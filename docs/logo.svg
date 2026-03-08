@@ -1,0 +1,362 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <!-- Sky-to-river gradient background -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a3a5c"/>
+      <stop offset="100%" stop-color="#2c5f8a"/>
+    </linearGradient>
+
+    <!-- Snow highlight gradient -->
+    <linearGradient id="snowGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cce0f5"/>
+    </linearGradient>
+
+    <!-- River gradient -->
+    <linearGradient id="riverGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4a9fd4"/>
+      <stop offset="100%" stop-color="#7ec8e3"/>
+    </linearGradient>
+
+    <!-- Glow filter for snowflake -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft mist blur -->
+    <filter id="mist" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="1.6"/>
+    </filter>
+
+    <!-- Cascade sheet — water flowing over rock face -->
+    <filter id="cascade" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+
+    <clipPath id="logoClip">
+      <rect width="400" height="120" rx="10"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="120" rx="10" fill="url(#bgGrad)"/>
+
+  <!-- ── SCENE (left side, 0–130) ── -->
+  <g clip-path="url(#logoClip)">
+
+    <!-- Stars -->
+    <circle cx="15" cy="12" r="0.8" fill="white" opacity="0.6"/>
+    <circle cx="38" cy="7"  r="0.8" fill="white" opacity="0.5"/>
+    <circle cx="58" cy="14" r="0.6" fill="white" opacity="0.4"/>
+    <circle cx="78" cy="6"  r="0.8" fill="white" opacity="0.5"/>
+    <circle cx="100" cy="10" r="0.6" fill="white" opacity="0.4"/>
+    <circle cx="118" cy="5" r="0.8" fill="white" opacity="0.6"/>
+
+    <!-- Background mountain (far, muted) -->
+    <polygon points="30,72 65,28 100,72" fill="#1e4d70" opacity="0.8"/>
+
+    <!-- Left mountain -->
+    <polygon points="0,72 45,18 90,72" fill="#1a3a5c"/>
+    <!-- Left mountain snow cap -->
+    <polygon points="45,18 28,48 45,42 62,48" fill="url(#snowGrad)" opacity="0.95"/>
+
+    <!-- Right mountain -->
+    <polygon points="55,72 105,12 148,72" fill="#1e4d70"/>
+    <!-- Right mountain snow cap -->
+    <polygon points="105,12 84,46 105,40 124,46" fill="url(#snowGrad)" opacity="0.95"/>
+
+    <!-- Snow drip / melt dots suggesting transition -->
+    <circle cx="45" cy="50" r="1.5" fill="#cce0f5" opacity="0.8"/>
+    <circle cx="45" cy="56" r="1.2" fill="#cce0f5" opacity="0.6"/>
+    <circle cx="105" cy="48" r="1.5" fill="#cce0f5" opacity="0.8"/>
+    <circle cx="105" cy="54" r="1.2" fill="#cce0f5" opacity="0.6"/>
+
+    <!-- Treeline (pines along base) -->
+    <!-- Left cluster -->
+    <polygon points="8,72  12,58  16,72"  fill="#0d2d45"/>
+    <polygon points="16,72 20,60  24,72"  fill="#0d2d45"/>
+    <polygon points="24,72 29,55  34,72"  fill="#112e44"/>
+    <!-- Middle gap -->
+    <polygon points="118,72 122,60 126,72" fill="#0d2d45"/>
+    <polygon points="126,72 131,56 136,72" fill="#112e44"/>
+    <polygon points="136,72 141,61 146,72" fill="#0d2d45"/>
+
+    <!-- River / flow — extends full width to edge -->
+    <path d="M 0,88 C 20,83 40,90 65,85 C 90,80 110,87 148,82 L 148,96 C 110,99 90,92 65,97 C 40,102 20,95 0,100 Z"
+          fill="url(#riverGrad)" opacity="0.85"/>
+
+    <!-- Ground / valley floor -->
+    <rect x="0" y="96" width="148" height="24" fill="#0a2236"/>
+
+    <!-- ── Whitewater elements ── -->
+
+    <!-- Rock gradients for wet granite lighting -->
+    <defs>
+      <!-- Rock 1: cool dark granite, light catching upper-left face -->
+      <linearGradient id="rock1Grad" x1="0.2" y1="0" x2="0.8" y2="1">
+        <stop offset="0%"   stop-color="#3a4a52"/>
+        <stop offset="40%"  stop-color="#1e2e38"/>
+        <stop offset="100%" stop-color="#0a1820"/>
+      </linearGradient>
+      <!-- Rock 2: larger boulder, warmer grey-granite -->
+      <linearGradient id="rock2Grad" x1="0.15" y1="0" x2="0.85" y2="1">
+        <stop offset="0%"   stop-color="#455058"/>
+        <stop offset="35%"  stop-color="#222f38"/>
+        <stop offset="100%" stop-color="#0c1a24"/>
+      </linearGradient>
+      <!-- Rock 3: smaller, slightly lighter face -->
+      <linearGradient id="rock3Grad" x1="0.25" y1="0" x2="0.75" y2="1">
+        <stop offset="0%"   stop-color="#3e4e58"/>
+        <stop offset="45%"  stop-color="#1c2c38"/>
+        <stop offset="100%" stop-color="#0a1820"/>
+      </linearGradient>
+    </defs>
+
+    <!-- ── Rock 1 — left, mid-sized, tilted slab ── -->
+    <!-- Submerged base / waterline shadow -->
+    <path d="M 20,94 C 22,92 26,91 31,92 C 34,93 36,94 35,95 C 32,96 24,96 20,94 Z"
+          fill="#071420" opacity="0.6"/>
+    <!-- Main boulder body — irregular angular granite slab -->
+    <path d="M 21,93 L 23,87 L 26,84 L 30,83 L 34,84 L 36,87 L 35,91 L 32,93 L 27,94 Z"
+          fill="url(#rock1Grad)"/>
+    <!-- Top highlight — sunlit wet face -->
+    <path d="M 23,87 L 26,84 L 30,83 L 32,84 L 30,86 L 26,87 Z"
+          fill="#5a6e7a" opacity="0.7"/>
+    <!-- Sharp highlight edge — water catching the rim -->
+    <path d="M 26,84 L 30,83 L 34,84"
+          stroke="#8ab0c0" stroke-width="0.8" fill="none" opacity="0.8"/>
+    <!-- Shadow crack detail -->
+    <path d="M 28,87 L 30,90 L 32,91"
+          stroke="#071420" stroke-width="0.7" fill="none" opacity="0.6"/>
+    <!-- Secondary smaller rock beside it -->
+    <path d="M 17,92 L 18,89 L 21,88 L 23,89 L 22,92 L 19,93 Z"
+          fill="url(#rock1Grad)" opacity="0.85"/>
+    <path d="M 18,89 L 21,88 L 22,89"
+          stroke="#6a8090" stroke-width="0.6" fill="none" opacity="0.6"/>
+
+    <!-- ── Rock 2 — center, largest boulder, angular upstream face ── -->
+    <!-- Submerged shadow base -->
+    <path d="M 58,94 C 61,91 66,89 72,90 C 76,91 79,93 78,95 C 74,97 62,97 58,94 Z"
+          fill="#071420" opacity="0.65"/>
+    <!-- Main body — chunky upstream-facing slab -->
+    <path d="M 60,93 L 61,87 L 63,83 L 67,80 L 72,80 L 76,83 L 78,87 L 77,91 L 73,93 L 66,94 Z"
+          fill="url(#rock2Grad)"/>
+    <!-- Broad top face catching light -->
+    <path d="M 63,83 L 67,80 L 72,80 L 75,82 L 72,83 L 67,84 Z"
+          fill="#5c6e78" opacity="0.75"/>
+    <!-- Bright wet rim highlight -->
+    <path d="M 63,83 L 67,80 L 72,80 L 76,83"
+          stroke="#9abccc" stroke-width="1.0" fill="none" opacity="0.85"/>
+    <!-- Left face — in partial shadow, slightly lighter than base -->
+    <path d="M 60,93 L 61,87 L 63,83 L 63,85 L 62,90 Z"
+          fill="#2a3c48" opacity="0.5"/>
+    <!-- Crack / fracture lines — granite texture -->
+    <path d="M 65,84 L 64,88 L 66,92"
+          stroke="#071420" stroke-width="0.9" fill="none" opacity="0.55"/>
+    <path d="M 70,82 L 72,86 L 71,90"
+          stroke="#071420" stroke-width="0.7" fill="none" opacity="0.4"/>
+    <!-- Small chip / flake on right shoulder -->
+    <path d="M 73,82 L 76,83 L 75,85 L 73,84 Z"
+          fill="#4a5e6a" opacity="0.7"/>
+    <!-- Foam collar where water hits the upstream face -->
+    <path d="M 58,91 C 60,88 62,87 64,87" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 57,93 C 59,91 61,90 63,90" stroke="white" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.45"/>
+    <!-- Splash dot cluster upstream -->
+    <circle cx="56" cy="89" r="1.3" fill="white" opacity="0.55"/>
+    <circle cx="54" cy="87" r="0.9" fill="white" opacity="0.45"/>
+    <circle cx="57" cy="86" r="0.7" fill="white" opacity="0.4"/>
+
+    <!-- ── Rock 3 — right side, lower, partially awash ── -->
+    <!-- Submerged base -->
+    <path d="M 105,93 C 107,91 111,89 116,90 C 119,91 120,93 119,94 C 116,95 108,95 105,93 Z"
+          fill="#071420" opacity="0.55"/>
+    <!-- Main body — lower, rounder top, more submerged look -->
+    <path d="M 106,93 L 107,88 L 109,85 L 113,83 L 117,84 L 119,87 L 118,91 L 115,93 L 109,94 Z"
+          fill="url(#rock3Grad)"/>
+    <!-- Top highlight -->
+    <path d="M 109,85 L 113,83 L 117,84 L 116,86 L 112,86 Z"
+          fill="#526070" opacity="0.7"/>
+    <!-- Wet rim -->
+    <path d="M 109,85 L 113,83 L 117,84"
+          stroke="#8aaabb" stroke-width="0.8" fill="none" opacity="0.8"/>
+    <!-- Crack detail -->
+    <path d="M 112,86 L 113,90 L 114,92"
+          stroke="#071420" stroke-width="0.7" fill="none" opacity="0.5"/>
+    <!-- Thin ledge / overhang on left -->
+    <path d="M 106,93 L 107,88 L 108,89 L 107,92 Z"
+          fill="#2a3c48" opacity="0.45"/>
+    <!-- Upstream foam -->
+    <path d="M 103,91 C 104,89 106,88 108,88" stroke="white" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.65"/>
+    <circle cx="102" cy="90" r="1.0" fill="white" opacity="0.5"/>
+    <circle cx="101" cy="88" r="0.7" fill="white" opacity="0.4"/>
+
+    <!-- ── Wakes downstream of each rock ── -->
+    <!-- Rock 1 wakes -->
+    <path d="M 36,87 C 41,84 48,86 51,85" stroke="white" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.75"/>
+    <path d="M 36,90 C 42,89 49,90 52,89"  stroke="white" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <!-- Rock 2 wakes -->
+    <path d="M 78,84 C 84,80 92,83 95,81"  stroke="white" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 78,88 C 85,86 93,88 96,87"  stroke="white" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.55"/>
+    <!-- Rock 3 wakes -->
+    <path d="M 119,86 C 124,83 130,85 133,84" stroke="white" stroke-width="1.0" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 119,90 C 125,89 131,90 134,89" stroke="white" stroke-width="0.7" fill="none" stroke-linecap="round" opacity="0.45"/>
+
+    <!-- ── Standing waves / haystacks in channels ── -->
+    <!-- Channel between rock 1 and rock 2 -->
+    <path d="M 49,91 C 51,87 54,87 56,91" stroke="white" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 53,91 C 55,88 57,88 59,91" stroke="white" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.55"/>
+    <!-- Channel between rock 2 and rock 3 -->
+    <path d="M 92,89 C 94,85 97,85 99,89"  stroke="white" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.65"/>
+    <path d="M 96,89 C 98,86 101,86 103,89" stroke="white" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- ── General surface chop / eddy lines ── -->
+    <path d="M 6,93  C 9,91  12,92  15,91"  stroke="white" stroke-width="0.7" fill="none" opacity="0.3"/>
+    <path d="M 38,94 C 41,92 44,93  47,92"  stroke="white" stroke-width="0.6" fill="none" opacity="0.28"/>
+    <path d="M 83,92 C 86,90 89,91  92,90"  stroke="white" stroke-width="0.6" fill="none" opacity="0.28"/>
+    <path d="M 121,91 C 124,89 127,90 130,89" stroke="white" stroke-width="0.6" fill="none" opacity="0.28"/>
+
+    <!-- ══ Water cascading over rocks ══ -->
+
+    <!-- Rock 1 cascade — thin sheet spilling over right shoulder -->
+    <!-- Water film curling over the top-right edge and down the face -->
+    <path d="M 33,84 C 35,84 37,86 37,89 C 37,91 36,92 35,93"
+          stroke="white" stroke-width="1.4" fill="none" stroke-linecap="round"
+          opacity="0.6" filter="url(#cascade)"/>
+    <path d="M 34,84 C 36,85 38,87 38,90 C 38,92 37,93 36,94"
+          stroke="white" stroke-width="0.7" fill="none" stroke-linecap="round"
+          opacity="0.35" filter="url(#cascade)"/>
+    <!-- Thin translucent water sheet shape -->
+    <path d="M 33,84 L 37,84 C 39,86 39,90 37,93 L 35,93 C 36,91 37,87 35,85 Z"
+          fill="white" opacity="0.12" filter="url(#cascade)"/>
+    <!-- Drip streak at base of cascade -->
+    <path d="M 36,92 C 37,93 38,94 37,95"
+          stroke="white" stroke-width="0.6" fill="none" opacity="0.4" stroke-linecap="round"/>
+
+    <!-- Rock 2 cascade — most prominent, water sheeting over the broad downstream face -->
+    <!-- Main cascade curtain — wide translucent sheet -->
+    <path d="M 73,81 L 79,83 C 82,86 83,90 81,93 L 78,94 C 80,91 80,87 77,84 Z"
+          fill="white" opacity="0.15" filter="url(#cascade)"/>
+    <!-- Individual cascade threads — fine lines suggesting water in free fall -->
+    <path d="M 74,81 C 76,83 77,87 76,91 C 75,93 75,94 74,95"
+          stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round"
+          opacity="0.65" filter="url(#cascade)"/>
+    <path d="M 76,82 C 78,84 79,88 78,92 C 77,93 77,94 76,95"
+          stroke="white" stroke-width="1.0" fill="none" stroke-linecap="round"
+          opacity="0.5" filter="url(#cascade)"/>
+    <path d="M 78,83 C 80,86 81,89 80,92"
+          stroke="white" stroke-width="0.7" fill="none" stroke-linecap="round"
+          opacity="0.35" filter="url(#cascade)"/>
+    <!-- Plunge pool froth at base of cascade -->
+    <path d="M 73,93 C 75,91 79,91 82,92 C 84,93 84,94 82,95 C 79,96 75,95 73,93 Z"
+          fill="white" opacity="0.25"/>
+    <path d="M 74,92 C 76,90 80,90 83,91"
+          stroke="white" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <!-- Bubbles in plunge pool -->
+    <circle cx="76" cy="93" r="1.0" fill="white" opacity="0.35"/>
+    <circle cx="79" cy="94" r="0.7" fill="white" opacity="0.3"/>
+    <circle cx="81" cy="92" r="0.8" fill="white" opacity="0.28"/>
+
+    <!-- Rock 3 cascade — partial spill over right edge -->
+    <path d="M 116,84 C 118,85 120,87 119,90 C 119,92 118,93 117,93"
+          stroke="white" stroke-width="1.3" fill="none" stroke-linecap="round"
+          opacity="0.55" filter="url(#cascade)"/>
+    <path d="M 117,84 C 119,86 121,88 120,91"
+          stroke="white" stroke-width="0.7" fill="none" stroke-linecap="round"
+          opacity="0.32" filter="url(#cascade)"/>
+    <path d="M 116,84 L 120,85 C 122,87 122,91 120,93 L 118,93 C 120,91 120,87 118,85 Z"
+          fill="white" opacity="0.1" filter="url(#cascade)"/>
+    <!-- Small plunge froth -->
+    <path d="M 116,92 C 118,90 121,91 122,92 C 122,93 120,94 118,93 Z"
+          fill="white" opacity="0.2"/>
+
+    <!-- ══ Mist rising above rocks ══ -->
+
+    <!-- Rock 1 mist — light wisps, blurred -->
+    <g filter="url(#mist)" opacity="0.55">
+      <circle cx="27" cy="80" r="2.5" fill="white" opacity="0.20"/>
+      <circle cx="31" cy="78" r="1.8" fill="white" opacity="0.18"/>
+      <circle cx="24" cy="79" r="1.5" fill="white" opacity="0.15"/>
+      <circle cx="29" cy="76" r="1.2" fill="white" opacity="0.12"/>
+      <circle cx="34" cy="80" r="1.6" fill="white" opacity="0.14"/>
+      <circle cx="26" cy="75" r="1.0" fill="white" opacity="0.10"/>
+      <circle cx="32" cy="74" r="0.9" fill="white" opacity="0.09"/>
+    </g>
+
+    <!-- Rock 2 mist — more substantial, largest rock -->
+    <g filter="url(#mist)" opacity="0.65">
+      <circle cx="66" cy="76" r="3.5" fill="white" opacity="0.22"/>
+      <circle cx="71" cy="74" r="2.8" fill="white" opacity="0.20"/>
+      <circle cx="63" cy="74" r="2.2" fill="white" opacity="0.18"/>
+      <circle cx="68" cy="71" r="2.0" fill="white" opacity="0.16"/>
+      <circle cx="74" cy="73" r="1.8" fill="white" opacity="0.15"/>
+      <circle cx="61" cy="72" r="1.5" fill="white" opacity="0.13"/>
+      <circle cx="70" cy="68" r="1.6" fill="white" opacity="0.12"/>
+      <circle cx="65" cy="69" r="1.3" fill="white" opacity="0.11"/>
+      <circle cx="75" cy="70" r="1.2" fill="white" opacity="0.10"/>
+      <circle cx="77" cy="76" r="1.8" fill="white" opacity="0.14"/>
+      <circle cx="59" cy="77" r="1.4" fill="white" opacity="0.12"/>
+    </g>
+
+    <!-- Rock 3 mist — moderate, between the two -->
+    <g filter="url(#mist)" opacity="0.55">
+      <circle cx="112" cy="79" r="2.6" fill="white" opacity="0.20"/>
+      <circle cx="116" cy="77" r="2.0" fill="white" opacity="0.18"/>
+      <circle cx="109" cy="78" r="1.7" fill="white" opacity="0.15"/>
+      <circle cx="114" cy="75" r="1.5" fill="white" opacity="0.13"/>
+      <circle cx="118" cy="78" r="1.4" fill="white" opacity="0.13"/>
+      <circle cx="111" cy="74" r="1.2" fill="white" opacity="0.10"/>
+      <circle cx="117" cy="73" r="1.0" fill="white" opacity="0.09"/>
+    </g>
+
+  </g>
+
+  <!-- Divider line -->
+  <line x1="148" y1="10" x2="148" y2="110" stroke="#4a9fd4" stroke-width="0.75" opacity="0.5"/>
+
+  <!-- ── TEXT (right side) ── -->
+
+  <!-- Main title -->
+  <text x="168" y="52"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="36"
+        font-weight="bold"
+        letter-spacing="1"
+        fill="white">Snow</text>
+
+  <!-- Arrow / connector -->
+  <text x="265" y="52"
+        font-family="Georgia, serif"
+        font-size="28"
+        fill="#4a9fd4"
+        opacity="0.9">→</text>
+
+  <text x="294" y="52"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="36"
+        font-weight="bold"
+        letter-spacing="1"
+        fill="#7ec8e3">Flow</text>
+
+  <!-- Subtitle -->
+  <text x="169" y="74"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-size="12"
+        letter-spacing="3"
+        fill="#cce0f5"
+        opacity="0.85">IDAHO RIVER SNOWPACK</text>
+
+  <!-- Thin rule under subtitle -->
+  <line x1="168" y1="80" x2="390" y2="80" stroke="#4a9fd4" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Tagline -->
+  <text x="169" y="96"
+        font-family="'Helvetica Neue', Arial, sans-serif"
+        font-size="10.5"
+        fill="#7ec8e3"
+        opacity="0.75">Snowpack &amp; streamflow · all water years</text>
+
+</svg>
