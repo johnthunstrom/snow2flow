@@ -37,10 +37,7 @@ rivers:
       site_id: "13309220"
       name: "MF Salmon R at MF Lodge nr Yellow Pine"
       parameter: "00060"
-    # No USBR STF page exists; sites chosen by watershed geography.
-    # MF Salmon drains the Frank Church wilderness; key tributaries:
-    # Marsh Creek (Banner Summit), Big Creek (Big Creek Summit),
-    # upper MF (Mill Creek Summit, Morgan Creek).
+    # Verified against USBR STF page (5 sites)
     snotel_sites:
       - id: "312"
         state: "ID"
@@ -48,6 +45,9 @@ rivers:
       - id: "338"
         state: "ID"
         name: "Big Creek Summit"
+      - id: "439"
+        state: "ID"
+        name: "Deadwood Summit"
       - id: "627"
         state: "ID"
         name: "Mill Creek Summit"
