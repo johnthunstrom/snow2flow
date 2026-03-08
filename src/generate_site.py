@@ -179,6 +179,40 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame,
     return chart_html, current_wy, sorted(visible_years)
 
 
+def _swe_comparison_data(swe_wy: pd.DataFrame, current_wy: int) -> dict:
+    """
+    Pre-compute SWE comparison data for the 'Show 5 Most Similar Years' button.
+    Finds the last date with current-year SWE data, then collects every other
+    year's SWE at that same proxy date.
+
+    Returns a dict suitable for JSON-serialization into the page's JavaScript.
+    """
+    if swe_wy.empty or current_wy not in swe_wy.columns:
+        return {}
+
+    cur = swe_wy[current_wy].dropna()
+    if cur.empty:
+        return {}
+
+    ref_date = cur.index[-1]          # proxy date (2000-2001 range)
+    ref_swe = float(cur.iloc[-1])
+
+    historical = {}
+    for wy in swe_wy.columns:
+        if wy == current_wy:
+            continue
+        if ref_date in swe_wy.index:
+            val = swe_wy.loc[ref_date, wy]
+            if pd.notna(val):
+                historical[str(wy)] = round(float(val), 1)
+
+    return {
+        "ref_date": ref_date.strftime("%B %-d"),   # e.g. "March 7"
+        "ref_swe": round(ref_swe, 1),
+        "historical": historical,
+    }
+
+
 def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
                 output_path: Path) -> None:
     """Render a single river page as a self-contained HTML file."""
@@ -195,6 +229,7 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
     # JSON-encode for safe injection into the page's JavaScript
     current_wy_js = json.dumps(current_wy)
     default_visible_js = json.dumps([str(y) for y in default_visible])
+    swe_comparison_js = json.dumps(_swe_comparison_data(swe_wy, current_wy))
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -344,76 +379,48 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
   <script>
     var CURRENT_WY = {current_wy_js};
     var DEFAULT_VISIBLE = {default_visible_js};
+    // Pre-computed SWE comparison: ref_date, ref_swe, historical {{year: swe}}
+    var SWE_COMPARISON = {swe_comparison_js};
+
+    function getChartDiv() {{
+      return document.getElementById('chart') ||
+             document.querySelector('.plotly-graph-div');
+    }}
+
+    function applyVisibility(showSet) {{
+      var gd = getChartDiv();
+      if (!gd || !gd.data) return;
+      var showIdx = [], hideIdx = [];
+      gd.data.forEach(function(t, i) {{
+        if (showSet[t.legendgroup]) showIdx.push(i);
+        else hideIdx.push(i);
+      }});
+      if (hideIdx.length) Plotly.restyle(gd, {{ visible: 'legendonly' }}, hideIdx);
+      if (showIdx.length) Plotly.restyle(gd, {{ visible: true }}, showIdx);
+    }}
 
     function showSimilarYears() {{
-      var gd = document.getElementById('chart');
-      if (!gd || !gd.data) return;
-
-      // Find the current year's SWE trace (dotted line on primary y-axis)
-      var sweTrace = null;
-      for (var i = 0; i < gd.data.length; i++) {{
-        var t = gd.data[i];
-        if (t.legendgroup === String(CURRENT_WY) &&
-            t.line && t.line.dash === 'dot') {{
-          sweTrace = t;
-          break;
-        }}
-      }}
-      if (!sweTrace) return;
-
-      // Walk backwards to find the most recent non-null SWE value
-      var lastIdx = -1, lastVal = null;
-      for (var j = sweTrace.y.length - 1; j >= 0; j--) {{
-        var v = sweTrace.y[j];
-        if (v !== null && v !== undefined && !isNaN(v)) {{
-          lastIdx = j;
-          lastVal = v;
-          break;
-        }}
-      }}
-      if (lastIdx === -1) return;
-
-      // Compare every other year's SWE at the same day-of-water-year index
-      var diffs = [];
-      for (var k = 0; k < gd.data.length; k++) {{
-        var tr = gd.data[k];
-        if (!tr.legendgroup || tr.legendgroup === String(CURRENT_WY)) continue;
-        if (!tr.line || tr.line.dash !== 'dot') continue;
-        var val = tr.y[lastIdx];
-        if (val === null || val === undefined || isNaN(val)) continue;
-        diffs.push({{ year: tr.legendgroup, diff: Math.abs(val - lastVal), swe: val }});
-      }}
-
-      // Sort by closeness and take the 5 nearest
+      if (!SWE_COMPARISON || !SWE_COMPARISON.historical) return;
+      var hist = SWE_COMPARISON.historical;
+      var refSwe = SWE_COMPARISON.ref_swe;
+      var diffs = Object.keys(hist).map(function(yr) {{
+        return {{ year: yr, diff: Math.abs(hist[yr] - refSwe) }};
+      }});
       diffs.sort(function(a, b) {{ return a.diff - b.diff; }});
-      var similar = {{}};
-      similar[String(CURRENT_WY)] = true;
-      diffs.slice(0, 5).forEach(function(d) {{ similar[d.year] = true; }});
-
-      // Restyle all traces at once
-      var visibility = gd.data.map(function(t) {{
-        return similar[t.legendgroup] ? true : 'legendonly';
-      }});
-      Plotly.restyle('chart', {{ visible: visibility }});
-
-      // Update the label — use proxy date to derive month/day display
-      var proxyDate = new Date(sweTrace.x[lastIdx]);
-      var monthDay = proxyDate.toLocaleDateString('en-US', {{
-        month: 'long', day: 'numeric', timeZone: 'UTC'
-      }});
+      var showSet = {{}};
+      showSet[String(CURRENT_WY)] = true;
+      diffs.slice(0, 5).forEach(function(d) {{ showSet[d.year] = true; }});
+      applyVisibility(showSet);
       var years = diffs.slice(0, 5).map(function(d) {{ return d.year; }}).join(', ');
       document.getElementById('similar-label').textContent =
-        'Nearest to ' + lastVal.toFixed(1) + '\u2033 SWE on ' + monthDay +
+        'Nearest to ' + refSwe.toFixed(1) + '\u2033 SWE on ' + SWE_COMPARISON.ref_date +
         ' \u2014 ' + years;
     }}
 
     function resetToRecent() {{
-      var gd = document.getElementById('chart');
-      if (!gd || !gd.data) return;
-      var visibility = gd.data.map(function(t) {{
-        return DEFAULT_VISIBLE.indexOf(t.legendgroup) >= 0 ? true : 'legendonly';
-      }});
-      Plotly.restyle('chart', {{ visible: visibility }});
+      var showSet = {{}};
+      DEFAULT_VISIBLE.forEach(function(y) {{ showSet[y] = true; }});
+      applyVisibility(showSet);
       document.getElementById('similar-label').textContent = '';
     }}
   </script>

@@ -149,76 +149,48 @@
   <script>
     var CURRENT_WY = 2026;
     var DEFAULT_VISIBLE = ["2022", "2023", "2024", "2025", "2026"];
+    // Pre-computed SWE comparison: ref_date, ref_swe, historical {year: swe}
+    var SWE_COMPARISON = {"ref_date": "March 7", "ref_swe": 22.7, "historical": {"1983": 21.5, "1984": 25.7, "1985": 34.4, "1986": 27.1, "1987": 22.9, "1988": 25.5, "1989": 32.6, "1990": 32.1, "1991": 34.9, "1992": 26.1, "1993": 25.4, "1994": 22.3, "1995": 28.0, "1996": 35.2, "1997": 52.8, "1998": 24.6, "1999": 49.6, "2000": 35.0, "2001": 18.4, "2002": 32.3, "2003": 33.1, "2004": 35.4, "2005": 17.4, "2006": 34.5, "2007": 30.5, "2008": 40.6, "2009": 30.4, "2010": 19.1, "2011": 38.9, "2012": 35.1, "2013": 27.6, "2014": 41.2, "2015": 24.3, "2016": 29.9, "2017": 32.7, "2018": 38.5, "2019": 31.3, "2020": 34.4, "2021": 32.8, "2022": 31.7, "2023": 31.4, "2024": 22.4, "2025": 28.8}};
+
+    function getChartDiv() {
+      return document.getElementById('chart') ||
+             document.querySelector('.plotly-graph-div');
+    }
+
+    function applyVisibility(showSet) {
+      var gd = getChartDiv();
+      if (!gd || !gd.data) return;
+      var showIdx = [], hideIdx = [];
+      gd.data.forEach(function(t, i) {
+        if (showSet[t.legendgroup]) showIdx.push(i);
+        else hideIdx.push(i);
+      });
+      if (hideIdx.length) Plotly.restyle(gd, { visible: 'legendonly' }, hideIdx);
+      if (showIdx.length) Plotly.restyle(gd, { visible: true }, showIdx);
+    }
 
     function showSimilarYears() {
-      var gd = document.getElementById('chart');
-      if (!gd || !gd.data) return;
-
-      // Find the current year's SWE trace (dotted line on primary y-axis)
-      var sweTrace = null;
-      for (var i = 0; i < gd.data.length; i++) {
-        var t = gd.data[i];
-        if (t.legendgroup === String(CURRENT_WY) &&
-            t.line && t.line.dash === 'dot') {
-          sweTrace = t;
-          break;
-        }
-      }
-      if (!sweTrace) return;
-
-      // Walk backwards to find the most recent non-null SWE value
-      var lastIdx = -1, lastVal = null;
-      for (var j = sweTrace.y.length - 1; j >= 0; j--) {
-        var v = sweTrace.y[j];
-        if (v !== null && v !== undefined && !isNaN(v)) {
-          lastIdx = j;
-          lastVal = v;
-          break;
-        }
-      }
-      if (lastIdx === -1) return;
-
-      // Compare every other year's SWE at the same day-of-water-year index
-      var diffs = [];
-      for (var k = 0; k < gd.data.length; k++) {
-        var tr = gd.data[k];
-        if (!tr.legendgroup || tr.legendgroup === String(CURRENT_WY)) continue;
-        if (!tr.line || tr.line.dash !== 'dot') continue;
-        var val = tr.y[lastIdx];
-        if (val === null || val === undefined || isNaN(val)) continue;
-        diffs.push({ year: tr.legendgroup, diff: Math.abs(val - lastVal), swe: val });
-      }
-
-      // Sort by closeness and take the 5 nearest
+      if (!SWE_COMPARISON || !SWE_COMPARISON.historical) return;
+      var hist = SWE_COMPARISON.historical;
+      var refSwe = SWE_COMPARISON.ref_swe;
+      var diffs = Object.keys(hist).map(function(yr) {
+        return { year: yr, diff: Math.abs(hist[yr] - refSwe) };
+      });
       diffs.sort(function(a, b) { return a.diff - b.diff; });
-      var similar = {};
-      similar[String(CURRENT_WY)] = true;
-      diffs.slice(0, 5).forEach(function(d) { similar[d.year] = true; });
-
-      // Restyle all traces at once
-      var visibility = gd.data.map(function(t) {
-        return similar[t.legendgroup] ? true : 'legendonly';
-      });
-      Plotly.restyle('chart', { visible: visibility });
-
-      // Update the label — use proxy date to derive month/day display
-      var proxyDate = new Date(sweTrace.x[lastIdx]);
-      var monthDay = proxyDate.toLocaleDateString('en-US', {
-        month: 'long', day: 'numeric', timeZone: 'UTC'
-      });
+      var showSet = {};
+      showSet[String(CURRENT_WY)] = true;
+      diffs.slice(0, 5).forEach(function(d) { showSet[d.year] = true; });
+      applyVisibility(showSet);
       var years = diffs.slice(0, 5).map(function(d) { return d.year; }).join(', ');
       document.getElementById('similar-label').textContent =
-        'Nearest to ' + lastVal.toFixed(1) + '″ SWE on ' + monthDay +
+        'Nearest to ' + refSwe.toFixed(1) + '″ SWE on ' + SWE_COMPARISON.ref_date +
         ' — ' + years;
     }
 
     function resetToRecent() {
-      var gd = document.getElementById('chart');
-      if (!gd || !gd.data) return;
-      var visibility = gd.data.map(function(t) {
-        return DEFAULT_VISIBLE.indexOf(t.legendgroup) >= 0 ? true : 'legendonly';
-      });
-      Plotly.restyle('chart', { visible: visibility });
+      var showSet = {};
+      DEFAULT_VISIBLE.forEach(function(y) { showSet[y] = true; });
+      applyVisibility(showSet);
       document.getElementById('similar-label').textContent = '';
     }
   </script>
