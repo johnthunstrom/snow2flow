@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+
+# Build artifacts (docs/ is committed for GitHub Pages)
+# but we don't want to accidentally commit data cache files
+*.cache
+
+# OS
+.DS_Store
+Thumbs.db

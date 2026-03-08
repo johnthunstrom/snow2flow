@@ -1,0 +1,125 @@
+# Snow-to-Flow site configuration
+# Each entry defines a stream gauge and the SNOTEL sites used to estimate
+# basin snowpack. SNOTEL site IDs are NRCS triplet format: ID:STATE:SNTL
+
+rivers:
+
+  - id: sf_salmon_krassel
+    name: "South Fork Salmon River"
+    subtitle: "near Krassel Ranger Station"
+    # USGS stream gauge
+    gauge:
+      agency: usgs
+      site_id: "13310700"
+      name: "SF Salmon R nr Krassel Ranger Station"
+      parameter: "00060"  # discharge, cfs
+    # SNOTEL sites in the watershed
+    # Big Creek Summit and Secesh Summit are confirmed in HUC 17060208
+    # Profile Creek and Buckhorn Summit are commonly cited for this basin
+    snotel_sites:
+      - id: "338"
+        state: "ID"
+        name: "Big Creek Summit"
+      - id: "740"
+        state: "ID"
+        name: "Secesh Summit"
+      - id: "439"
+        state: "ID"
+        name: "Deadwood Summit"
+      - id: "370"
+        state: "ID"
+        name: "Brundage Reservoir"
+    # Water year start (Oct 1)
+    water_year_start_month: 10
+
+  - id: mf_salmon_lodge
+    name: "Middle Fork Salmon River"
+    subtitle: "near Lodge"
+    gauge:
+      agency: usgs
+      site_id: "13309000"
+      name: "Middle Fork Salmon R nr Lodge ID"
+      parameter: "00060"
+    snotel_sites:
+      - id: "978"
+        state: "ID"
+        name: "Big Creek Summit (MF)"
+      - id: "312"
+        state: "ID"
+        name: "Banner Summit"
+      - id: "306"
+        state: "ID"
+        name: "Atlanta Summit"
+      - id: "588"
+        state: "ID"
+        name: "Lost Wood Divide"
+    water_year_start_month: 10
+
+  - id: salmon_whitebird
+    name: "Salmon River"
+    subtitle: "at Whitebird"
+    gauge:
+      agency: usgs
+      site_id: "13317000"
+      name: "Salmon R at White Bird ID"
+      parameter: "00060"
+    snotel_sites:
+      - id: "312"
+        state: "ID"
+        name: "Banner Summit"
+      - id: "740"
+        state: "ID"
+        name: "Secesh Summit"
+      - id: "338"
+        state: "ID"
+        name: "Big Creek Summit"
+      - id: "306"
+        state: "ID"
+        name: "Atlanta Summit"
+    water_year_start_month: 10
+
+  - id: selway_lowell
+    name: "Selway River"
+    subtitle: "near Lowell"
+    gauge:
+      agency: usgs
+      site_id: "13336500"
+      name: "Selway R nr Lowell ID"
+      parameter: "00060"
+    snotel_sites:
+      - id: "500"
+        state: "ID"
+        name: "Hoodoo"
+      - id: "619"
+        state: "ID"
+        name: "Meadow Lake"
+      - id: "774"
+        state: "ID"
+        name: "Selway Falls"
+      - id: "972"
+        state: "ID"
+        name: "White Cap"
+    water_year_start_month: 10
+
+  - id: lochsa_lowell
+    name: "Lochsa River"
+    subtitle: "near Lowell"
+    gauge:
+      agency: usgs
+      site_id: "13337000"
+      name: "Lochsa R nr Lowell ID"
+      parameter: "00060"
+    snotel_sites:
+      - id: "500"
+        state: "ID"
+        name: "Hoodoo"
+      - id: "568"
+        state: "ID"
+        name: "Lochsa"
+      - id: "761"
+        state: "ID"
+        name: "Sentrada"
+      - id: "619"
+        state: "ID"
+        name: "Meadow Lake"
+    water_year_start_month: 10
