@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.usbr.gov)",
+      "WebFetch(domain:wcc.sc.egov.usda.gov)",
+      "WebFetch(domain:www.nrcs.usda.gov)"
+    ]
+  }
+}

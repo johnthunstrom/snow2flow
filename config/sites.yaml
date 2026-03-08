@@ -1,81 +1,101 @@
 # Snow-to-Flow site configuration
-# Each entry defines a stream gauge and the SNOTEL sites used to estimate
-# basin snowpack. SNOTEL site IDs are NRCS triplet format: ID:STATE:SNTL
+# SNOTEL sites for SF Salmon, Selway, Lochsa, and Salmon at White Bird
+# are verified against the USBR Snow-to-Flow pages (Lower Snake basin).
+# MF Salmon sites are chosen by watershed geography (no USBR page exists).
 
 rivers:
 
   - id: sf_salmon_krassel
     name: "South Fork Salmon River"
     subtitle: "near Krassel Ranger Station"
-    # USGS stream gauge
     gauge:
       agency: usgs
       site_id: "13310700"
       name: "SF Salmon R nr Krassel Ranger Station"
-      parameter: "00060"  # discharge, cfs
-    # SNOTEL sites in the watershed
-    # Big Creek Summit and Secesh Summit are confirmed in HUC 17060208
-    # Profile Creek and Buckhorn Summit are commonly cited for this basin
+      parameter: "00060"
+    # Verified against USBR STF page
     snotel_sites:
       - id: "338"
         state: "ID"
         name: "Big Creek Summit"
-      - id: "740"
+      - id: "423"
         state: "ID"
-        name: "Secesh Summit"
+        name: "Cozy Cove"
       - id: "439"
         state: "ID"
         name: "Deadwood Summit"
-      - id: "370"
+      - id: "740"
         state: "ID"
-        name: "Brundage Reservoir"
-    # Water year start (Oct 1)
+        name: "Secesh Summit"
     water_year_start_month: 10
 
   - id: mf_salmon_lodge
     name: "Middle Fork Salmon River"
-    subtitle: "near Lodge"
+    subtitle: "near Yellow Pine (MF Lodge)"
     gauge:
       agency: usgs
-      site_id: "13309000"
-      name: "Middle Fork Salmon R nr Lodge ID"
+      site_id: "13309220"
+      name: "MF Salmon R at MF Lodge nr Yellow Pine"
       parameter: "00060"
+    # No USBR STF page exists; sites chosen by watershed geography.
+    # MF Salmon drains the Frank Church wilderness; key tributaries:
+    # Marsh Creek (Banner Summit), Big Creek (Big Creek Summit),
+    # upper MF (Mill Creek Summit, Morgan Creek).
     snotel_sites:
-      - id: "978"
-        state: "ID"
-        name: "Big Creek Summit (MF)"
       - id: "312"
         state: "ID"
         name: "Banner Summit"
-      - id: "306"
+      - id: "338"
         state: "ID"
-        name: "Atlanta Summit"
-      - id: "588"
+        name: "Big Creek Summit"
+      - id: "627"
         state: "ID"
-        name: "Lost Wood Divide"
+        name: "Mill Creek Summit"
+      - id: "639"
+        state: "ID"
+        name: "Morgan Creek"
     water_year_start_month: 10
 
   - id: salmon_whitebird
     name: "Salmon River"
-    subtitle: "at Whitebird"
+    subtitle: "at White Bird"
     gauge:
       agency: usgs
       site_id: "13317000"
       name: "Salmon R at White Bird ID"
       parameter: "00060"
+    # Verified against USBR STF page (10 sites)
     snotel_sites:
       - id: "312"
         state: "ID"
         name: "Banner Summit"
-      - id: "740"
-        state: "ID"
-        name: "Secesh Summit"
       - id: "338"
         state: "ID"
         name: "Big Creek Summit"
-      - id: "306"
+      - id: "439"
         state: "ID"
-        name: "Atlanta Summit"
+        name: "Deadwood Summit"
+      - id: "489"
+        state: "ID"
+        name: "Galena"
+      - id: "490"
+        state: "ID"
+        name: "Galena Summit"
+      - id: "627"
+        state: "ID"
+        name: "Mill Creek Summit"
+      - id: "636"
+        state: "ID"
+        name: "Moonshine"
+      - id: "639"
+        state: "ID"
+        name: "Morgan Creek"
+      - id: "650"
+        state: "ID"
+        name: "Mountain Meadows"
+      - id: "845"
+        state: "ID"
+        name: "Vienna Mine"
     water_year_start_month: 10
 
   - id: selway_lowell
@@ -86,19 +106,14 @@ rivers:
       site_id: "13336500"
       name: "Selway R nr Lowell ID"
       parameter: "00060"
+    # Verified against USBR STF page (2 sites)
     snotel_sites:
-      - id: "500"
+      - id: "650"
         state: "ID"
-        name: "Hoodoo"
-      - id: "619"
+        name: "Mountain Meadows"
+      - id: "735"
         state: "ID"
-        name: "Meadow Lake"
-      - id: "774"
-        state: "ID"
-        name: "Selway Falls"
-      - id: "972"
-        state: "ID"
-        name: "White Cap"
+        name: "Savage Pass"
     water_year_start_month: 10
 
   - id: lochsa_lowell
@@ -109,17 +124,18 @@ rivers:
       site_id: "13337000"
       name: "Lochsa R nr Lowell ID"
       parameter: "00060"
+    # Verified against USBR STF page (4 sites)
     snotel_sites:
-      - id: "500"
+      - id: "425"
         state: "ID"
-        name: "Hoodoo"
-      - id: "568"
+        name: "Crater Meadows"
+      - id: "520"
         state: "ID"
-        name: "Lochsa"
-      - id: "761"
+        name: "Hemlock Butte"
+      - id: "588"
         state: "ID"
-        name: "Sentrada"
-      - id: "619"
+        name: "Lolo Pass"
+      - id: "735"
         state: "ID"
-        name: "Meadow Lake"
+        name: "Savage Pass"
     water_year_start_month: 10
