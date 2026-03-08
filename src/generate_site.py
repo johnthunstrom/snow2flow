@@ -3,6 +3,7 @@ Generate static HTML pages for the snow-to-flow site.
 One page per river, plus an index page.
 """
 
+import json
 import logging
 from datetime import date
 from pathlib import Path
@@ -69,17 +70,20 @@ def _year_width(wy: int, current_wy: int) -> float:
     return DECADE_WIDTHS[_decade_index(wy)]
 
 
-def make_chart(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame) -> str:
+def make_chart(site_config: dict, flow_wy: pd.DataFrame,
+               swe_wy: pd.DataFrame) -> tuple[str, int, list[int]]:
     """
     Build a Plotly figure with SWE (left axis) and streamflow (right axis),
-    one trace per water year. Returns the HTML div string.
+    one trace per water year.
+
+    Returns (html_div, current_water_year, default_visible_years).
     """
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     all_years = sorted(set(flow_wy.columns) | set(swe_wy.columns))
     current_wy = _current_water_year()
 
-    # Last 5 years + current are visible on load; older years toggleable via legend
+    # Last 5 years visible on load; older years toggleable via legend
     visible_years = set(all_years[-5:])
 
     # Add SWE traces (left axis, dotted)
@@ -171,13 +175,14 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame) -
         margin=dict(l=60, r=120, t=80, b=60),
     )
 
-    return fig.to_html(full_html=False, include_plotlyjs=False, div_id="chart")
+    chart_html = fig.to_html(full_html=False, include_plotlyjs=False, div_id="chart")
+    return chart_html, current_wy, sorted(visible_years)
 
 
 def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
                 output_path: Path) -> None:
     """Render a single river page as a self-contained HTML file."""
-    chart_div = make_chart(site_config, flow_wy, swe_wy)
+    chart_div, current_wy, default_visible = make_chart(site_config, flow_wy, swe_wy)
 
     snotel_list = "\n".join(
         f'          <li>{s["name"]} (SNOTEL {s["id"]})</li>'
@@ -186,7 +191,10 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
 
     gauge = site_config["gauge"]
     updated = date.today().strftime("%B %d, %Y")
-    current_wy = _current_water_year()
+
+    # JSON-encode for safe injection into the page's JavaScript
+    current_wy_js = json.dumps(current_wy)
+    default_visible_js = json.dumps([str(y) for y in default_visible])
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -220,6 +228,36 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
     }}
     header a.back:hover {{ text-decoration: underline; }}
     .container {{ max-width: 1200px; margin: 0 auto; padding: 1.5rem; }}
+    .chart-controls {{
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }}
+    .btn {{
+      padding: 0.4rem 0.9rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: opacity 0.15s, transform 0.1s;
+    }}
+    .btn:hover {{ opacity: 0.85; transform: translateY(-1px); }}
+    .btn-similar {{
+      background: #2c5f8a;
+      color: white;
+    }}
+    .btn-reset {{
+      background: #e0e8f0;
+      color: #2c5f8a;
+    }}
+    .similar-label {{
+      font-size: 0.82rem;
+      color: #555;
+      font-style: italic;
+    }}
     .chart-wrapper {{
       background: white;
       border-radius: 8px;
@@ -256,6 +294,16 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
   </header>
 
   <div class="container">
+    <div class="chart-controls">
+      <button class="btn btn-similar" onclick="showSimilarYears()">
+        Show 5 Most Similar Years
+      </button>
+      <button class="btn btn-reset" onclick="resetToRecent()">
+        Reset to Last 5 Years
+      </button>
+      <span class="similar-label" id="similar-label"></span>
+    </div>
+
     <div class="chart-wrapper">
       {chart_div}
     </div>
@@ -277,10 +325,12 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
         </div>
       </div>
       <p style="margin-top:1rem; color:#666; font-size:0.85rem">
-        The last 5 water years are shown on load — click any year in the legend to toggle it.
-        Each year is color-coded by last digit (e.g. all &ldquo;6&rdquo; years are blue) with
-        darker shades for more recent decades. The {current_wy - 1}&ndash;{current_wy} water
-        year is the boldest line. Dotted = SWE, solid = streamflow. Updated: {updated}.
+        The last 5 water years are shown on load — click any year in the legend to toggle it,
+        or use <em>Show 5 Most Similar Years</em> to find historical years with the closest
+        snowpack to today. Each year is color-coded by last digit (e.g. all &ldquo;6&rdquo;
+        years are blue) with darker shades for more recent decades. The {current_wy - 1}&ndash;{current_wy}
+        water year is the boldest line. Dotted&nbsp;=&nbsp;SWE, solid&nbsp;=&nbsp;streamflow.
+        Updated: {updated}.
       </p>
     </div>
   </div>
@@ -290,6 +340,83 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
     <a href="https://www.nrcs.usda.gov/wps/portal/wcc/home">NRCS SNOTEL</a>.
     Inspired by the <a href="https://www.usbr.gov/uc/water/hydrodata/stf/">USBR Snow to Flow</a> tool.
   </footer>
+
+  <script>
+    var CURRENT_WY = {current_wy_js};
+    var DEFAULT_VISIBLE = {default_visible_js};
+
+    function showSimilarYears() {{
+      var gd = document.getElementById('chart');
+      if (!gd || !gd.data) return;
+
+      // Find the current year's SWE trace (dotted line on primary y-axis)
+      var sweTrace = null;
+      for (var i = 0; i < gd.data.length; i++) {{
+        var t = gd.data[i];
+        if (t.legendgroup === String(CURRENT_WY) &&
+            t.line && t.line.dash === 'dot') {{
+          sweTrace = t;
+          break;
+        }}
+      }}
+      if (!sweTrace) return;
+
+      // Walk backwards to find the most recent non-null SWE value
+      var lastIdx = -1, lastVal = null;
+      for (var j = sweTrace.y.length - 1; j >= 0; j--) {{
+        var v = sweTrace.y[j];
+        if (v !== null && v !== undefined && !isNaN(v)) {{
+          lastIdx = j;
+          lastVal = v;
+          break;
+        }}
+      }}
+      if (lastIdx === -1) return;
+
+      // Compare every other year's SWE at the same day-of-water-year index
+      var diffs = [];
+      for (var k = 0; k < gd.data.length; k++) {{
+        var tr = gd.data[k];
+        if (!tr.legendgroup || tr.legendgroup === String(CURRENT_WY)) continue;
+        if (!tr.line || tr.line.dash !== 'dot') continue;
+        var val = tr.y[lastIdx];
+        if (val === null || val === undefined || isNaN(val)) continue;
+        diffs.push({{ year: tr.legendgroup, diff: Math.abs(val - lastVal), swe: val }});
+      }}
+
+      // Sort by closeness and take the 5 nearest
+      diffs.sort(function(a, b) {{ return a.diff - b.diff; }});
+      var similar = {{}};
+      similar[String(CURRENT_WY)] = true;
+      diffs.slice(0, 5).forEach(function(d) {{ similar[d.year] = true; }});
+
+      // Restyle all traces at once
+      var visibility = gd.data.map(function(t) {{
+        return similar[t.legendgroup] ? true : 'legendonly';
+      }});
+      Plotly.restyle('chart', {{ visible: visibility }});
+
+      // Update the label — use proxy date to derive month/day display
+      var proxyDate = new Date(sweTrace.x[lastIdx]);
+      var monthDay = proxyDate.toLocaleDateString('en-US', {{
+        month: 'long', day: 'numeric', timeZone: 'UTC'
+      }});
+      var years = diffs.slice(0, 5).map(function(d) {{ return d.year; }}).join(', ');
+      document.getElementById('similar-label').textContent =
+        'Nearest to ' + lastVal.toFixed(1) + '\u2033 SWE on ' + monthDay +
+        ' \u2014 ' + years;
+    }}
+
+    function resetToRecent() {{
+      var gd = document.getElementById('chart');
+      if (!gd || !gd.data) return;
+      var visibility = gd.data.map(function(t) {{
+        return DEFAULT_VISIBLE.indexOf(t.legendgroup) >= 0 ? true : 'legendonly';
+      }});
+      Plotly.restyle('chart', {{ visible: visibility }});
+      document.getElementById('similar-label').textContent = '';
+    }}
+  </script>
 </body>
 </html>
 """
