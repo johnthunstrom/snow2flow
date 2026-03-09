@@ -376,7 +376,7 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
 <body>
   <header>
     <a class="logo" href="index.html">
-      <img src="logo.svg" alt="Snow to Flow">
+      <img src="logo.png" alt="Snow to Flow">
     </a>
     <a class="back" href="index.html">← All Rivers</a>
   </header>
@@ -549,7 +549,7 @@ def render_index(sites: list, output_dir: Path) -> None:
 </head>
 <body>
   <header>
-    <img src="logo.svg" alt="Snow to Flow — Idaho Rivers">
+    <img src="logo.png" alt="Snow to Flow — Idaho Rivers">
   </header>
 
   <div class="container">
