@@ -73,14 +73,72 @@ def fetch_nrcs_swe(site_id: str, state: str, start: str, end: str) -> pd.Series:
         return pd.Series(dtype=float, name=f"swe_{site_id}")
 
     element_data = data[0]["data"][0]
-    records = {
-        v["date"][:10]: float(v["value"]) if v["value"] is not None else float("nan")
-        for v in element_data["values"]
-    }
+    records = {}
+    for v in element_data["values"]:
+        val = v.get("value")
+        records[v["date"][:10]] = float(val) if val is not None else float("nan")
     series = pd.Series(records, dtype=float, name=f"swe_{site_id}")
     series.index = pd.to_datetime(series.index)
     series.sort_index(inplace=True)
     return series
+
+
+def fetch_nrcs_temp(site_id: str, state: str, start: str, end: str) -> pd.Series:
+    """
+    Fetch daily average air temperature (°F) from NRCS AWDB for one SNOTEL site.
+
+    Returns a pandas Series indexed by date, values in °F.
+    """
+    triplet = f"{site_id}:{state}:SNTL"
+    params = {
+        "stationTriplets": triplet,
+        "elements": "TAVG",
+        "beginDate": start,
+        "endDate": end,
+        "duration": "DAILY",
+    }
+    resp = requests.get(NRCS_URL, params=params, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if not data or not data[0].get("data"):
+        log.warning("No temperature data for SNOTEL %s", triplet)
+        return pd.Series(dtype=float, name=f"temp_{site_id}")
+
+    element_data = data[0]["data"][0]
+    records = {}
+    for v in element_data["values"]:
+        val = v.get("value")
+        records[v["date"][:10]] = float(val) if val is not None else float("nan")
+    series = pd.Series(records, dtype=float, name=f"temp_{site_id}")
+    series.index = pd.to_datetime(series.index)
+    series.sort_index(inplace=True)
+    return series
+
+
+def fetch_basin_temp(snotel_sites: list, start: str, end: str) -> pd.DataFrame:
+    """
+    Fetch average air temperature for all SNOTEL sites in a basin and return
+    a DataFrame with one column per site plus a 'temp_mean' column (°F).
+    """
+    frames = {}
+    for site in snotel_sites:
+        log.info("Fetching temp for %s (%s)", site["name"], site["id"])
+        try:
+            s = fetch_nrcs_temp(site["id"], site["state"], start, end)
+            if not s.empty:
+                frames[site["name"]] = s
+        except Exception as e:
+            log.warning("Failed to fetch temp for %s: %s", site["name"], e)
+
+    if not frames:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(frames)
+    df.index = pd.to_datetime(df.index)
+    df.sort_index(inplace=True)
+    df["temp_mean"] = df.mean(axis=1)
+    return df
 
 
 def fetch_basin_swe(snotel_sites: list, start: str, end: str) -> pd.DataFrame:
@@ -145,14 +203,13 @@ def align_to_water_year(series: pd.Series, start_month: int = 10) -> pd.DataFram
 
 
 def get_historical_data(gauge_config: dict, snotel_sites: list,
-                        start_year: int = 1981) -> tuple[pd.DataFrame, pd.DataFrame]:
+                        start_year: int = 1981) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Fetch full historical record for a gauge/SNOTEL combo.
 
-    Returns (flow_wy_df, swe_wy_df) — both aligned to water year proxy dates.
+    Returns (flow_wy_df, swe_wy_df, temp_wy_df) — all aligned to water year proxy dates.
     """
     today = date.today()
-    # End at end of current water year
     end = today.strftime("%Y-%m-%d")
     start = f"{start_year}-10-01"
 
@@ -162,7 +219,11 @@ def get_historical_data(gauge_config: dict, snotel_sites: list,
     log.info("Fetching SWE for %d SNOTEL sites", len(snotel_sites))
     swe_df = fetch_basin_swe(snotel_sites, start, end)
 
+    log.info("Fetching temperature for %d SNOTEL sites", len(snotel_sites))
+    temp_df = fetch_basin_temp(snotel_sites, start, end)
+
     flow_wy = align_to_water_year(flow, start_month=10)
     swe_wy = align_to_water_year(swe_df["swe_mean"], start_month=10) if not swe_df.empty else pd.DataFrame()
+    temp_wy = align_to_water_year(temp_df["temp_mean"], start_month=10) if not temp_df.empty else pd.DataFrame()
 
-    return flow_wy, swe_wy
+    return flow_wy, swe_wy, temp_wy

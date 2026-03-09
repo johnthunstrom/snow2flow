@@ -71,22 +71,37 @@ def _year_width(wy: int, current_wy: int) -> float:
 
 
 def make_chart(site_config: dict, flow_wy: pd.DataFrame,
-               swe_wy: pd.DataFrame) -> tuple[str, int, list[int]]:
+               swe_wy: pd.DataFrame,
+               temp_wy: pd.DataFrame) -> tuple[str, int, list[int]]:
     """
-    Build a Plotly figure with SWE (left axis) and streamflow (right axis),
-    one trace per water year.
+    Build a Plotly figure with:
+      Row 1 (tall): SWE (left axis, dotted) + streamflow (right axis, solid)
+      Row 2 (short): basin-average daily temperature (°F)
 
     Returns (html_div, current_water_year, default_visible_years).
     """
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    has_temp = not temp_wy.empty
 
-    all_years = sorted(set(flow_wy.columns) | set(swe_wy.columns))
+    if has_temp:
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            row_heights=[5, 1],
+            specs=[[{"secondary_y": True}], [{"secondary_y": False}]],
+            vertical_spacing=0.03,
+        )
+        chart_height = 720
+    else:
+        fig = make_subplots(rows=1, cols=1, specs=[[{"secondary_y": True}]])
+        chart_height = 580
+
+    all_years = sorted(set(flow_wy.columns) | set(swe_wy.columns) | set(temp_wy.columns))
     current_wy = _current_water_year()
 
-    # Last 5 years visible on load; older years toggleable via legend
+    # Last 5 years visible on load
     visible_years = set(all_years[-5:])
 
-    # Add SWE traces (left axis, dotted)
+    # --- SWE traces (row 1, left axis, dotted) ---
     for wy in all_years:
         if wy not in swe_wy.columns:
             continue
@@ -104,10 +119,10 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame,
                 line=dict(color=color, width=width, dash="dot"),
                 hovertemplate=f"<b>{wy} SWE</b><br>%{{x|%b %d}}: %{{y:.1f}} in<extra></extra>",
             ),
-            secondary_y=False,
+            secondary_y=False, row=1, col=1,
         )
 
-    # Add streamflow traces (right axis, solid)
+    # --- Streamflow traces (row 1, right axis, solid) ---
     for wy in all_years:
         if wy not in flow_wy.columns:
             continue
@@ -125,9 +140,37 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame,
                 line=dict(color=color, width=width),
                 hovertemplate=f"<b>{wy} Flow</b><br>%{{x|%b %d}}: %{{y:,.0f}} cfs<extra></extra>",
             ),
-            secondary_y=True,
+            secondary_y=True, row=1, col=1,
         )
 
+    # --- Temperature traces (row 2) ---
+    if has_temp:
+        for wy in all_years:
+            if wy not in temp_wy.columns:
+                continue
+            s = temp_wy[wy].dropna()
+            color = _year_color(wy, current_wy)
+            width = _year_width(wy, current_wy)
+            fig.add_trace(
+                go.Scatter(
+                    x=s.index,
+                    y=s.values,
+                    name=str(wy),
+                    legendgroup=str(wy),
+                    showlegend=False,
+                    visible=True if wy in visible_years else "legendonly",
+                    line=dict(color=color, width=max(0.6, width * 0.7)),
+                    hovertemplate=f"<b>{wy} Temp</b><br>%{{x|%b %d}}: %{{y:.1f}}°F<extra></extra>",
+                ),
+                row=2, col=1,
+            )
+        # 32°F freezing reference line
+        fig.add_hline(
+            y=32, line_dash="dot", line_color="#6699cc", line_width=1,
+            row=2, col=1,
+        )
+
+    # --- Axes ---
     fig.update_xaxes(
         tickformat="%b",
         dtick="M1",
@@ -137,18 +180,28 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame,
         gridcolor="#e0e0e0",
     )
     fig.update_yaxes(
-        title_text="Snow Water Equivalent (inches)",
-        secondary_y=False,
+        title_text="SWE (in)",
+        secondary_y=False, row=1, col=1,
         rangemode="tozero",
         showgrid=True,
         gridcolor="#e0e0e0",
     )
     fig.update_yaxes(
-        title_text="Streamflow (cfs)",
-        secondary_y=True,
+        title_text="Flow (cfs)",
+        secondary_y=True, row=1, col=1,
         rangemode="tozero",
         showgrid=False,
     )
+    if has_temp:
+        fig.update_yaxes(
+            title_text="Temp (°F)",
+            row=2, col=1,
+            showgrid=True,
+            gridcolor="#e0e0e0",
+            tickfont=dict(size=9),
+            title_font=dict(size=10),
+            zeroline=False,
+        )
 
     fig.update_layout(
         title=dict(
@@ -162,7 +215,7 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame,
             y=1,
             xanchor="left",
             yanchor="top",
-            title=dict(text="Year<br><sup>dotted=SWE · solid=flow</sup>"),
+            title=dict(text="Year<br><sup>··· SWE · — flow</sup>"),
             font=dict(size=10),
             tracegroupgap=1,
             bgcolor="rgba(255,255,255,0.85)",
@@ -171,7 +224,7 @@ def make_chart(site_config: dict, flow_wy: pd.DataFrame,
         ),
         plot_bgcolor="white",
         paper_bgcolor="white",
-        height=580,
+        height=chart_height,
         margin=dict(l=60, r=120, t=80, b=60),
     )
 
@@ -214,9 +267,9 @@ def _swe_comparison_data(swe_wy: pd.DataFrame, current_wy: int) -> dict:
 
 
 def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
-                output_path: Path) -> None:
+                temp_wy: pd.DataFrame, output_path: Path) -> None:
     """Render a single river page as a self-contained HTML file."""
-    chart_div, current_wy, default_visible = make_chart(site_config, flow_wy, swe_wy)
+    chart_div, current_wy, default_visible = make_chart(site_config, flow_wy, swe_wy, temp_wy)
 
     snotel_list = "\n".join(
         f'          <li>{s["name"]} (SNOTEL {s["id"]})</li>'

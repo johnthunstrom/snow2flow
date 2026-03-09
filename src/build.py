@@ -47,12 +47,12 @@ def build_site(site_ids: list[str] | None = None) -> None:
         log.info("Building: %s %s", site["name"], site["subtitle"])
         log.info("=" * 60)
         try:
-            flow_wy, swe_wy = get_historical_data(
+            flow_wy, swe_wy, temp_wy = get_historical_data(
                 site["gauge"],
                 site["snotel_sites"],
             )
             out = OUTPUT_DIR / f"{site['id']}.html"
-            render_page(site, flow_wy, swe_wy, out)
+            render_page(site, flow_wy, swe_wy, temp_wy, out)
         except Exception as e:
             log.error("Failed to build %s: %s", site["id"], e)
             raise

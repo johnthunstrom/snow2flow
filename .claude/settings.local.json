@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:www.usbr.gov)",
       "WebFetch(domain:wcc.sc.egov.usda.gov)",
-      "WebFetch(domain:www.nrcs.usda.gov)"
+      "WebFetch(domain:www.nrcs.usda.gov)",
+      "WebSearch",
+      "WebFetch(domain:www.mountainbuzz.com)"
     ]
   }
 }
