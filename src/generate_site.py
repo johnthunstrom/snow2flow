@@ -289,6 +289,9 @@ def render_page(site_config: dict, flow_wy: pd.DataFrame, swe_wy: pd.DataFrame,
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>{site_config['name']} – Snow to Flow</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
@@ -502,6 +505,9 @@ def render_index(sites: list, output_dir: Path) -> None:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Snow to Flow – Idaho Rivers</title>
   <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
